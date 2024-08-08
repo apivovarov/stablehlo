@@ -215,6 +215,10 @@ enum TypeCode {
   ///   }
   kFloatF64V1Type = 5,
 
+  ///   FloatF8E4M3V1Type {
+  ///   }
+  kFloatF8E4M3V1Type = 33,
+
   ///   FloatF8E4M3FNV1Type {
   ///   }
   kFloatF8E4M3FNV1Type = 6,
@@ -692,6 +696,7 @@ const llvm::fltSemantics &getFloatSemantics(Type type) {
   if (isa<FloatF8E4M3FNUZV1Type>(type)) return APFloat::Float8E4M3FNUZ();
   if (isa<FloatF8E4M3B11FNUZV1Type>(type)) return APFloat::Float8E4M3B11FNUZ();
   if (isa<FloatF8E4M3FNV1Type>(type)) return APFloat::Float8E4M3FN();
+  if (isa<FloatF8E4M3V1Type>(type)) return APFloat::Float8E4M3();
   if (isa<FloatF8E5M2FNUZV1Type>(type)) return APFloat::Float8E5M2FNUZ();
   if (isa<FloatF8E5M2V1Type>(type)) return APFloat::Float8E5M2();
   llvm::report_fatal_error("unsupported floating-point type");
@@ -958,6 +963,8 @@ Type VhloBytecodeInterface::readType(DialectBytecodeReader &reader) const {
       return FloatF64V1Type::get(getContext());
     case vhlo_encoding::kFloatF8E5M2V1Type:
       return FloatF8E5M2V1Type::get(getContext());
+    case vhlo_encoding::kFloatF8E4M3V1Type:
+      return FloatF8E4M3V1Type::get(getContext());
     case vhlo_encoding::kFloatF8E4M3FNV1Type:
       return FloatF8E4M3FNV1Type::get(getContext());
     case vhlo_encoding::kFloatF8E5M2FNUZV1Type:
@@ -1045,6 +1052,11 @@ LogicalResult VhloBytecodeInterface::writeType(
       .Case([&](FloatF64V1Type) {
         LOG_WRITE_CALL;
         return writer.writeVarInt(vhlo_encoding::kFloatF64V1Type), success();
+      })
+      .Case([&](FloatF8E4M3V1Type) {
+        LOG_WRITE_CALL;
+        return writer.writeVarInt(vhlo_encoding::kFloatF8E4M3V1Type),
+               success();
       })
       .Case([&](FloatF8E4M3FNV1Type) {
         LOG_WRITE_CALL;

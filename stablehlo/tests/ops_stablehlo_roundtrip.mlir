@@ -184,6 +184,7 @@ func.func @test_constants() {
   %cst_5 = arith.constant dense<[[3, 2], [1, 4]]> : tensor<2x2xi32>
   %cst_6 = arith.constant dense<[[1, 2], [4, 8]]> : tensor<2x2xui32>
   %cst_7 = arith.constant dense<[1.0, 2.0, 3.0, 4.0]> : tensor<4xf8E4M3B11FNUZ>
+  %cst_16 = arith.constant dense<[1.0, 2.0, 3.0, 4.0]> : tensor<4xf8E4M3>
   %cst_8 = arith.constant dense<[1.0, 2.0, 3.0, 4.0]> : tensor<4xf8E4M3FN>
   %cst_9 = arith.constant dense<[1.0, 2.0, 3.0, 4.0]> : tensor<4xf8E4M3FNUZ>
   %cst_10 = arith.constant dense<[1.0, 2.0, 3.0, 4.0]> : tensor<4xf8E5M2>
