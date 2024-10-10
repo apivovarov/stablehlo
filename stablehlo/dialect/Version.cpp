@@ -17,7 +17,9 @@ limitations under the License.
 #include "stablehlo/dialect/Version.h"
 
 #include <array>
+#include <chrono>
 #include <cstdint>
+#include <ctime>
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
@@ -30,6 +32,54 @@ limitations under the License.
 namespace mlir {
 namespace vhlo {
 namespace {
+
+struct VersionTagDate {
+  Version ver;
+  std::tm tagDate;
+};
+
+static std::tm makeTm(int year, int mon, int day) {
+  std::tm t;
+  t.tm_year = year - 1900;  // Year since 1900
+  t.tm_mon = mon - 1;       // Month: December (0-based, so 11 is December)
+  t.tm_mday = day;
+  t.tm_hour = 0;
+  t.tm_min = 0;
+  t.tm_sec = 0;
+  return t;
+}
+
+// Tags: https://github.com/openxla/stablehlo/tags
+static std::array<VersionTagDate, 8> releases = {
+    VersionTagDate{Version(1, 7, 0), makeTm(2024, 9, 5)},
+    VersionTagDate{Version(1, 6, 0), makeTm(2024, 8, 16)},
+    VersionTagDate{Version(1, 5, 0), makeTm(2024, 8, 1)},
+    VersionTagDate{Version(1, 4, 0), makeTm(2024, 7, 16)},
+    VersionTagDate{Version(1, 3, 0), makeTm(2024, 7, 16)},
+    VersionTagDate{Version(1, 2, 0), makeTm(2024, 7, 8)},
+    VersionTagDate{Version(1, 1, 0), makeTm(2024, 5, 30)},
+    VersionTagDate{Version(1, 0, 0), makeTm(2024, 5, 14)},
+};
+
+static int daysSince(const std::time_t pastTime) {
+  // Get the current UTC time
+  auto now = std::chrono::system_clock::now();
+  std::time_t nowUtcTime = std::chrono::system_clock::to_time_t(now);
+  double diffSec = std::difftime(nowUtcTime, pastTime);
+  return diffSec / 86400;
+}
+
+static Version getVersionTaggedOnOrAfterDays(int daysAgo) {
+  for (auto& rel : releases) {
+    time_t tagTime = std::mktime(&(rel.tagDate));
+    int diff = daysSince(tagTime);
+    if (diff >= daysAgo) {
+      return rel.ver;
+    }
+  }
+  return Version::getMinimumVersion();
+}
+
 // Helper function for number to string.
 // Precondition that numRef is a valid decimal digit.
 static int64_t parseNumber(llvm::StringRef numRef) {
@@ -83,9 +133,9 @@ Version Version::fromCompatibilityRequirement(
     case CompatibilityRequirement::NONE:
       return Version::getCurrentVersion();
     case CompatibilityRequirement::WEEK_4:
-      return Version(1, 7, 0);  // v1.7.0 - Sept 05, 2024
+      return getVersionTaggedOnOrAfterDays(28);
     case CompatibilityRequirement::WEEK_12:
-      return Version(1, 1, 0);  // v1.1.0 - May 30, 2024
+      return getVersionTaggedOnOrAfterDays(84);
     case CompatibilityRequirement::MAX:
       return Version::getMinimumVersion();
   }
